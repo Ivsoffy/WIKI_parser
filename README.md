@@ -39,28 +39,28 @@
 Albus Percival Wulfric Brian Dumbledore was sitting in his chair and looked on a young boy with 
 a lightning bolt-shaped scar on his forehead.
 
- &mdash; So, Harry, you're saying all muggles are connected to each other with just [six handshakes](https://en.wikipedia.org/wiki/Six_degrees_of_separation)?
+ "So, Harry, you're saying all muggles are connected to each other with just [six handshakes](https://en.wikipedia.org/wiki/Six_degrees_of_separation)?"
 
- &mdash; It is not strictly proven, obviously, - Harry straightened his glasses. - But it applies 
- not to just muggles, but everyone!
+ "It is not strictly proven, obviously," Harry straightened his glasses. "But it applies 
+ not to just muggles, but everyone!"
  
- &mdash; I find this a pretty bold assumption. Any other examples of these...*graphs* you can give me?
+ "I find this a pretty bold assumption. Any other examples of these... *graphs* you can give me?"
  
- &mdash; One of the largest public encyclopaedias in the world is called Wikipedia...
+ "One of the largest public encyclopaedias in the world is called Wikipedia..."
  
- &mdash; It should be a pretty large book! Even a whole series...
+ "It should be a pretty large book! Even a whole series..."
 
  Harry sighed.
 
- &mdash; It is not a book, it is a website. But the idea is similar to, say, dictionaries - various
- entities are linked to each other...
+ "It is not a book, it is a website. But the idea is similar to, say, dictionaries - various
+ entities are linked to each other..."
 
 
 <h2 id="chapter-iv" >Chapter IV</h2>
 <h3 id="ex00">Exercise 00: Old Style</h3>
 
-During next several minutes, Harry was still explaining to Dumbledore what a "website" is, but
-an old wizard was still unsure about the value of some "book that can't be touched".
+During next several minutes, Harry was still explaining to Dumbledore what a 'website' is, but
+an old wizard was still unsure about the value of some 'book that can't be touched'.
 
 Harry also tried to explain how some people could follow the links from one article to another and
 then end up wondering how did they even get to some other topic. This was a lot easier to relate to
@@ -72,7 +72,7 @@ Looks like it was necessary to download some information to illustrate the conce
 -----
 
 You need to write a script called `cache_wiki.py`, which main purpose will be to download pages
-from Wikipedia, but the data we're interested in is links in text and "See also" sections leading
+from Wikipedia, but the data we're interested in is links in text and 'See also' sections leading
 to other pages inside Wikipedia itself. This means, you don't need to download the content, but
 only save a graph representation as a JSON file `wiki.json`, so that vertices store pages and
 directed edges are links.
@@ -107,21 +107,21 @@ database](https://neo4j.com/download/).
 <h2 id="chapter-v" >Chapter V</h2>
 <h3 id="ex01">Exercise 01: Shortcuts</h3>
 
- &mdash; I see. But why are Welsh Corgi so close to King Solomon?
+ "I see. But why are Welsh Corgi so close to King Solomon?"
 
 Harry wanted to say that he has no idea, but then he noticed the smiling eyes of the wizard. 
 
- &mdash; Frankly speaking, I highly doubt it's the weirdest connection there, - said the boy. - But
- don't you think, sir, it's...
+ "Frankly speaking, I highly doubt it's the weirdest connection there," said the boy, "but
+ don't you think, sir, it's..."
  
- &mdash; ...absolutely fascinating! - finished the wizard. I think I've underestimated muggles'
+ "..absolutely fascinating!" finished the wizard. "I think I've underestimated muggles'
  technologies here, well done. Anyway, but how do we figure out how closely are two pages 
- connected to each other?
+ connected to each other?"
 
 Harry thought for a moment. 
 
- &mdash; I assume we can try and find the shortest path from one page to another. This is a pretty
- complicated task with a regular book, but it becomes a lot easier on a serialized graph.
+ "I assume we can try and find the shortest path from one page to another. This is a pretty
+ complicated task with a regular book, but it becomes a lot easier on a serialized graph."
 
 -----
 
@@ -135,7 +135,7 @@ path length between two pages in your serialized database (if these pages are th
 3
 ```
 
-Mind the `--non-directed` flag. It means we treat all links as "non-directed" or "bidirected", so
+Mind the `--non-directed` flag. It means we treat all links as 'non-directed' or 'bidirected', so
 every edge is treated equally in both directions. In this case, a path exists betweeh *any* two
 nodes in your serialized graph.
 
@@ -155,25 +155,25 @@ Additionally, please add `-v` flag, which will enable logging of the found path,
 3
 ```
 
-In this exercise, you shouldn't be using an existing implementation of a "shortest path"
+In this exercise, you shouldn't be using an existing implementation of a 'shortest path'
 algorithm provided by an existing libraries. Please write it yourself instead.
 
 
 <h2 id="chapter-vi" >Chapter VI</h2>
 <h3 id="ex01">Exercise 02: Greatest Magicians</h3>
 
- &mdash; Now I can see the relation with "six handshakes" rule you mentioned. Great magicians 
- can be quite popular, right?
+  "Now I can see the relation with "six handshakes" rule you mentioned. Great magicians 
+ can be quite popular, right?"
 
 The boy stared at him, trying to understand what's going on in old wizard's head.
 
- &mdash; Oh, Harry, don't you know the definition of popularity? The more fans you have, the more
- well known overall you are. Like with rock bands.
+ "Oh, Harry, don't you know the definition of popularity? The more fans you have, the more
+ well known overall you are. Like with rock bands."
 
 Dumbledore stood up and went to the entrance of the office. Then he stopped right before the door
 and turned back to Harry with a smile.
 
- &mdash; I think all we have to do is visualize the data. To find out who's the greatest, I mean.
+ "I think all we have to do is visualize the data. To find out who's the greatest, I mean."
 
 Harry raised an eyebrow and looked at the wizard in surprise. It was said pretty loud and looked
 like Dumbledore was serious. Find out who is the greatest? Okay, from the graph standpoint it
@@ -181,7 +181,7 @@ shouldn't be that hard...
 
 ...Draco Malfoy managed to escape from being caught eavesdropping. He was hiding around the corner
 from the headmaster's office when Dumbledore left, and now his mind was filled with thoughts about
-"greatest wizards". He firmly decided that the next owl he will send to his father will be about 
+'greatest wizards'. He firmly decided that the next owl he will send to his father will be about 
 connecting Malfoy Manor to the Internet.
 
 -----
@@ -191,7 +191,7 @@ generated in EX00, also reading it from a `WIKI_FILE` env variable) as a PNG ima
 `wiki_graph.png`, with nodes and edges. You may use any third-party library for that.
 
 The main rule here is that the size of the node should correspond to the number of incoming 
-connections. The more connections - the larger the node in render. This way the "greatest pages"
+connections. The more connections - the larger the node in render. This way the 'greatest pages'
 in your dataset will be the best visible ones.
 
 You can get additional score in this task if your script optionally can generate not only `.png`
