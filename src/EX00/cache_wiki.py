@@ -76,13 +76,20 @@ def get_links_from_body(url):
     if response.ok:
         soup = BeautifulSoup(response.text, "lxml")
         body = soup.find("div", class_="mw-content-ltr mw-parser-output")
-        links = body.find_all("a", href=True)
+        if body:
+            preferences = body.find("ol", class_="references")
+            if preferences:
+                preferences.decompose()
+            navigation = body.find("div", role="navigation")
+            if navigation:
+                navigation.decompose()
+            links = body.find_all("a", href=True)
 
-    return [
+    return set(
         PREFIX_LINK + quote(link["href"], safe="/:%")
         for link in links
         if is_correct_link(link["href"])
-    ]
+    )
 
 
 def parse_html(url, depth, driver):
@@ -101,7 +108,27 @@ def parse_html(url, depth, driver):
 
     links = get_links_from_body(url)
     if links:
-        json_data.append({"from_node": url, "to_nodes": links})
+        json_data.append(
+            {
+                "from_node": {
+                    "title": unquote(
+                        url.replace(f"{PREFIX_LINK}/wiki/", "")
+                    ).replace("_", " "),
+                    "link": url,
+                },
+                "to_nodes": [
+                    {
+                        "title": unquote(
+                            link.replace(f"{PREFIX_LINK}/wiki/", "").replace(
+                                "_", " "
+                            )
+                        ),
+                        "link": link,
+                    }
+                    for link in links
+                ],
+            }
+        )
 
     for link in links:
         set_of_nodes.add(
@@ -117,6 +144,7 @@ def parse_html(url, depth, driver):
             for link in links
             if len(visited_pages) < MAX_NUM_NODES
             and f"{PREFIX_LINK}{link}" not in visited_pages
+            and depth - 1 != 0
         ]
         for future in futures:
             future.result()
@@ -145,6 +173,8 @@ def main():
 
         with open("graph.json", "w") as file:
             json.dump(json_data, file, indent=2)
+
+        os.environ["WIKI_FILE"] = "graph.json"
 
         driver.close()
         # print(f"nodes = {len(set_of_nodes)}")
