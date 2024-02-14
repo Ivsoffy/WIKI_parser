@@ -1,0 +1,8 @@
+beautifulsoup4==4.10.0
+requests==2.26.0
+neo4j==5.17.0
+networkx==2.7
+pyvis==0.3.2
+lxml==5.1.0
+python-dotenv==1.0.1
+PyYAML==6.0.1

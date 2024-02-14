@@ -1,5 +1,6 @@
 # Prerequisites
 *.d
+*__pycache__
 
 # Object files
 *.o
@@ -21,6 +22,7 @@
 *.a
 *.la
 *.lo
+
 
 # Shared objects (inc. Windows DLLs)
 *.dll
@@ -49,3 +51,5 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
+*.env
+venv
