@@ -100,54 +100,43 @@ def parse_html(url, depth, driver):
     ):
         return
 
-    # url = f"{PREFIX_LINK}{quote(url, safe='/:%')}"
-    logging.info(f"{url} depth={depth}")
+    logging.info(f"{url} LENGTH={len(visited_pages)}")
     visited_pages.add(url)
-    # driver.add_node(unquote(url).replace(" ", "_"))
-    # driver.add_node(url)
 
     links = get_links_from_body(url)
     if links:
-        json_data.append(
-            {
-                "from_node": {
+        node = {
+            "from_node": {
+                "title": unquote(
+                    url.replace(f"{PREFIX_LINK}/wiki/", "")
+                ).replace("_", " "),
+                "link": url,
+            },
+            "to_nodes": [
+                {
                     "title": unquote(
-                        url.replace(f"{PREFIX_LINK}/wiki/", "")
-                    ).replace("_", " "),
-                    "link": url,
-                },
-                "to_nodes": [
-                    {
-                        "title": unquote(
-                            link.replace(f"{PREFIX_LINK}/wiki/", "").replace(
-                                "_", " "
-                            )
-                        ),
-                        "link": link,
-                    }
-                    for link in links
-                ],
-            }
-        )
+                        link.replace(f"{PREFIX_LINK}/wiki/", "").replace(
+                            "_", " "
+                        )
+                    ),
+                    "link": link,
+                }
+                for link in links
+            ],
+        }
+        json_data.append(node)
+        driver.create_graph(node)
 
-    for link in links:
-        set_of_nodes.add(
-            (
-                url,
-                link,
-            )
-        )
-
-    with ThreadPoolExecutor(max_workers=5) as executor:
-        futures = [
-            executor.submit(parse_html, link, depth - 1, driver)
-            for link in links
-            if len(visited_pages) < MAX_NUM_NODES
-            and f"{PREFIX_LINK}{link}" not in visited_pages
-            and depth - 1 != 0
-        ]
-        for future in futures:
-            future.result()
+        with ThreadPoolExecutor(max_workers=min(4, os.cpu_count())) as executor:
+            futures = [
+                executor.submit(parse_html, link, depth - 1, driver)
+                for link in links
+                if len(visited_pages) < MAX_NUM_NODES
+                and link not in visited_pages
+                and depth - 1 != 0
+            ]
+            for future in futures:
+                future.result()
 
 
 def main():
@@ -164,12 +153,6 @@ def main():
             args.depth if args.depth > 0 else DEFAULT_DEPTH,
         )
         parse_html(start_page, depth, driver)
-        # for node in set_of_nodes:
-        #     print(node)
-        # print(f"edges = {len(set_of_nodes)}")
-        # driver.create_graph(set_of_nodes)
-
-        # json_data = driver.get_data_as_json()
 
         with open("graph.json", "w") as file:
             json.dump(json_data, file, indent=2)
@@ -177,7 +160,6 @@ def main():
         os.environ["WIKI_FILE"] = "graph.json"
 
         driver.close()
-        # print(f"nodes = {len(set_of_nodes)}")
 
     except ConfigurationError:
         logging.error("Incorrect auth for neo4j")
