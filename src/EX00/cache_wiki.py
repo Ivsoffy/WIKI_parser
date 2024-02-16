@@ -8,7 +8,8 @@ from dotenv import load_dotenv
 from neo4j_class import Neo4jDriver
 from neo4j.exceptions import ConfigurationError
 import json
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, as_completed
+import time
 
 
 DEFAULT_PAGE = "Erdős number"
@@ -27,7 +28,6 @@ EXCLUDED_PAGES = [
 ]
 
 visited_pages = set()
-set_of_nodes = set()
 json_data = []
 
 
@@ -68,6 +68,42 @@ def is_correct_link(link):
     )
 
 
+def remove_contents_from_body(body):
+    preferences = body.find("ol", class_="references")
+    if preferences:
+        preferences.decompose()
+
+    navigation = body.find("div", role="navigation")
+    if navigation:
+        navigation.decompose()
+
+    sups = body.find("sup", class_="reference")
+    if sups:
+        sups.decompose()
+
+    notes = body.find("div", role="note")
+    if notes:
+        notes.decompose()
+
+    figures = body.find("figure")
+    if figures:
+        figures.decompose()
+
+    tables = body.find("table")
+    if tables:
+        tables.decompose()
+
+    catlinks = body.find("div", class_="catlinks")
+    if catlinks:
+        catlinks.decompose()
+
+    external = body.find("span", id="External_links")
+    if external:
+        for sibling in external.find_next_siblings():
+            sibling.extract()
+    return body
+
+
 def get_links_from_body(url):
     response = requests.get(url)
 
@@ -77,15 +113,7 @@ def get_links_from_body(url):
         soup = BeautifulSoup(response.text, "lxml")
         body = soup.find("div", class_="mw-content-ltr mw-parser-output")
         if body:
-            preferences = body.find("ol", class_="references")
-            if preferences:
-                preferences.decompose()
-            navigation = body.find("div", role="navigation")
-            if navigation:
-                navigation.decompose()
-            sups = body.find("sup", class_="reference")
-            if sups:
-                sups.decompose()
+
             links = body.find_all("a", href=True)
 
     return set(
@@ -96,6 +124,8 @@ def get_links_from_body(url):
 
 
 def parse_html(url, depth, driver):
+    global visited_pages, json_data
+
     if (
         depth == 0
         or url in visited_pages
@@ -103,11 +133,11 @@ def parse_html(url, depth, driver):
     ):
         return
 
-    logging.info(f"{url} LENGTH={len(visited_pages)}")
     visited_pages.add(url)
 
     links = get_links_from_body(url)
-    print(f"AMOUNT_LINKS={len(links)}")
+    logging.info(f"PAGE:{url}")
+
     if links:
         node = {
             "from_node": {
@@ -128,6 +158,7 @@ def parse_html(url, depth, driver):
                 for link in links
             ],
         }
+
         json_data.append(node)
         driver.create_graph(node)
 
@@ -139,16 +170,25 @@ def parse_html(url, depth, driver):
                 and link not in visited_pages
                 and depth - 1 != 0
             ]
-            for future in futures:
+            # for future in futures:
+            #     future.result()
+
+            for future in as_completed(futures):
                 future.result()
-        # for link in links:
-        #     parse_html(link, depth - 1, driver)
+
+                if len(visited_pages) >= MAX_NUM_NODES:
+                    executor.shutdown(wait=False)
+                    break
 
 
 def main():
-    args = get_args_from_command_line()
+    global json_data
 
+    start_time = time.time()
+
+    args = get_args_from_command_line()
     load_dotenv()
+
     try:
         uri, username, password = get_auth_info_for_neo4j()
         driver = Neo4jDriver(uri, username, password)
@@ -163,14 +203,16 @@ def main():
         with open("graph.json", "w") as file:
             json.dump(json_data, file, indent=2)
 
-        # driver.create_graph(json_data)
-
         os.environ["WIKI_FILE"] = "graph.json"
 
         driver.close()
 
     except ConfigurationError:
         logging.error("Incorrect auth for neo4j")
+
+    end_time = time.time()
+
+    print(f"time = {end_time - start_time}")
 
 
 if __name__ == "__main__":

@@ -15,24 +15,33 @@ class Neo4jDriver:
             from_title = from_node.get("title")
             from_link = from_node.get("link")
 
+            session.run(
+                "MERGE (from:URL {title: $from_title, link: $from_link})",
+                from_title=from_title,
+                from_link=from_link,
+            )
+
             to_nodes = node.get("to_nodes", [])
 
-            query = """
-            MERGE (from:URL {title: $from_title, link: $from_link})
-            WITH from
-            UNWIND $to_nodes AS to_data
-            MERGE (to:URL {title: to_data.title, link: to_data.link})
-            MERGE (from)-[:CONNECTED]->(to)
-            RETURN from, to
-            """
+            for to_node in to_nodes:
+                to_title = to_node.get("title")
+                to_link = to_node.get("link")
 
-            params = {
-                "from_title": from_title,
-                "from_link": from_link,
-                "to_nodes": to_nodes,
-            }
+                session.run(
+                    "MERGE (to:URL {title: $to_title, link: $to_link})",
+                    to_title=to_title,
+                    to_link=to_link,
+                )
 
-            session.run(query, params)
+                session.run(
+                    "MATCH (from:URL {title: $from_title, link: $from_link}), "
+                    "(to:URL {title: $to_title, link: $to_link}) "
+                    "MERGE (from)-[:CONNECTED]->(to)",
+                    from_title=from_title,
+                    from_link=from_link,
+                    to_title=to_title,
+                    to_link=to_link,
+                )
 
     def clear_graph(self):
         with self._driver.session() as session:
