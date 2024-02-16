@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 from neo4j_class import Neo4jDriver
 from neo4j.exceptions import ConfigurationError
 import json
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import ThreadPoolExecutor
 import time
 
 
@@ -113,7 +113,7 @@ def get_links_from_body(url):
         soup = BeautifulSoup(response.text, "lxml")
         body = soup.find("div", class_="mw-content-ltr mw-parser-output")
         if body:
-
+            remove_contents_from_body(body)
             links = body.find_all("a", href=True)
 
     return set(
@@ -170,15 +170,9 @@ def parse_html(url, depth, driver):
                 and link not in visited_pages
                 and depth - 1 != 0
             ]
-            # for future in futures:
-            #     future.result()
 
-            for future in as_completed(futures):
+            for future in futures:
                 future.result()
-
-                if len(visited_pages) >= MAX_NUM_NODES:
-                    executor.shutdown(wait=False)
-                    break
 
 
 def main():
