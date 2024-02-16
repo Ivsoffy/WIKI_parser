@@ -83,6 +83,9 @@ def get_links_from_body(url):
             navigation = body.find("div", role="navigation")
             if navigation:
                 navigation.decompose()
+            sups = body.find("sup", class_="reference")
+            if sups:
+                sups.decompose()
             links = body.find_all("a", href=True)
 
     return set(
@@ -104,6 +107,7 @@ def parse_html(url, depth, driver):
     visited_pages.add(url)
 
     links = get_links_from_body(url)
+    print(f"AMOUNT_LINKS={len(links)}")
     if links:
         node = {
             "from_node": {
@@ -137,6 +141,8 @@ def parse_html(url, depth, driver):
             ]
             for future in futures:
                 future.result()
+        # for link in links:
+        #     parse_html(link, depth - 1, driver)
 
 
 def main():
@@ -156,6 +162,8 @@ def main():
 
         with open("graph.json", "w") as file:
             json.dump(json_data, file, indent=2)
+
+        # driver.create_graph(json_data)
 
         os.environ["WIKI_FILE"] = "graph.json"
 
