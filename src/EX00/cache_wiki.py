@@ -93,14 +93,14 @@ def remove_contents_from_body(body):
         for sibling in reflist.find_next_siblings():
             sibling.extract()
         reflist.decompose()
+
     return body
 
 
 def get_links_from_body(url):
-    response = requests.get(url)
-
     links = []
 
+    response = requests.get(f"{PREFIX_LINK}{url}")
     if response.ok:
         soup = BeautifulSoup(response.text, "lxml")
         body = soup.find("div", class_="mw-content-ltr mw-parser-output")
@@ -108,11 +108,7 @@ def get_links_from_body(url):
             remove_contents_from_body(body)
             links = body.find_all("a", href=True)
 
-    return set(
-        PREFIX_LINK + quote(link["href"], safe="/:%")
-        for link in links
-        if is_correct_link(link["href"])
-    )
+    return set(link for link in links if is_correct_link(link["href"]))
 
 
 def parse_html(url, depth, driver):
@@ -126,26 +122,19 @@ def parse_html(url, depth, driver):
         return
 
     visited_pages.add(url)
+    logging.info(f"PAGE:{PREFIX_LINK}{url}")
 
     links = get_links_from_body(url)
-    logging.info(f"PAGE:{url}")
-
     if links:
         node = {
             "from_node": {
-                "title": unquote(
-                    url.replace(f"{PREFIX_LINK}/wiki/", "")
-                ).replace("_", " "),
-                "link": url,
+                "title": unquote(url.replace(f"/wiki/", "")).replace("_", " "),
+                "link": f"{PREFIX_LINK}{url}",
             },
             "to_nodes": [
                 {
-                    "title": unquote(
-                        link.replace(f"{PREFIX_LINK}/wiki/", "").replace(
-                            "_", " "
-                        )
-                    ),
-                    "link": link,
+                    "title": link.get("title"),
+                    "link": quote(f"{PREFIX_LINK}{link['href']}", safe="/:%"),
                 }
                 for link in links
             ],
@@ -156,7 +145,12 @@ def parse_html(url, depth, driver):
 
         with ThreadPoolExecutor(max_workers=min(4, os.cpu_count())) as executor:
             futures = [
-                executor.submit(parse_html, link, depth - 1, driver)
+                executor.submit(
+                    parse_html,
+                    quote(link["href"], safe="/:%"),
+                    depth - 1,
+                    driver,
+                )
                 for link in links
                 if len(visited_pages) < MAX_NUM_NODES
                 and link not in visited_pages
@@ -165,8 +159,6 @@ def parse_html(url, depth, driver):
 
             for future in futures:
                 future.result()
-        # for link in links:
-        #     parse_html(link, depth - 1, driver)
 
 
 def main():
@@ -176,14 +168,13 @@ def main():
 
     args = get_args_from_command_line()
     load_dotenv()
-
     try:
         uri, username, password = get_auth_info_for_neo4j()
         driver = Neo4jDriver(uri, username, password)
         driver.clear_graph()
 
         start_page, depth = (
-            PREFIX_LINK + "/wiki/" + quote(args.page, safe="/:%"),
+            quote("/wiki/" + args.page.replace(" ", "_"), safe="/:%"),
             args.depth if args.depth > 0 else DEFAULT_DEPTH,
         )
         parse_html(start_page, depth, driver)
@@ -199,7 +190,6 @@ def main():
         logging.error("Incorrect auth for neo4j")
 
     end_time = time.time()
-
     print(f"time = {end_time - start_time}")
 
 
