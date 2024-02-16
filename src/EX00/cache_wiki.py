@@ -19,12 +19,21 @@ MAX_NUM_NODES = 1000
 EXCLUDED_PAGES = [
     "/Portal:",
     "/Wikipedia:",
-    "/File:",
     "/Special:",
-    "/Template_talk:",
-    "/Template:",
+    "/File:",
     "/Help:",
-    "/Category:",
+]
+TAGS_TO_REMOVE = [
+    {"name": "ol", "class": "references"},
+    {"name": "div", "role": "navigation"},
+    {"name": "sup", "class": "reference"},
+    {"name": "div", "role": "note"},
+    {"name": "figure"},
+    {"name": "table"},
+    {"name": "div", "class": "catlinks"},
+    {"name": "span", "class": "rt-commentedText nowrap"},
+    {"name": "span", "class": "mw-editsection"},
+    {"name": "style"},
 ]
 
 visited_pages = set()
@@ -69,38 +78,21 @@ def is_correct_link(link):
 
 
 def remove_contents_from_body(body):
-    preferences = body.find("ol", class_="references")
-    if preferences:
-        preferences.decompose()
+    for tag_info in TAGS_TO_REMOVE:
+        tag = tag_info["name"]
+        attrs = {key: value for key, value in tag_info.items() if key != "name"}
+        element = body.find(tag, attrs)
+        while element:
+            element.decompose()
+            element = body.find(tag, attrs)
 
-    navigation = body.find("div", role="navigation")
-    if navigation:
-        navigation.decompose()
-
-    sups = body.find("sup", class_="reference")
-    if sups:
-        sups.decompose()
-
-    notes = body.find("div", role="note")
-    if notes:
-        notes.decompose()
-
-    figures = body.find("figure")
-    if figures:
-        figures.decompose()
-
-    tables = body.find("table")
-    if tables:
-        tables.decompose()
-
-    catlinks = body.find("div", class_="catlinks")
-    if catlinks:
-        catlinks.decompose()
-
-    external = body.find("span", id="External_links")
-    if external:
-        for sibling in external.find_next_siblings():
+    reflist = body.find(
+        "div", class_=lambda value: value and "reflist" in value
+    )
+    if reflist:
+        for sibling in reflist.find_next_siblings():
             sibling.extract()
+        reflist.decompose()
     return body
 
 
@@ -173,6 +165,8 @@ def parse_html(url, depth, driver):
 
             for future in futures:
                 future.result()
+        # for link in links:
+        #     parse_html(link, depth - 1, driver)
 
 
 def main():
