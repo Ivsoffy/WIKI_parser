@@ -34,13 +34,11 @@ class Neo4jDriver:
                 )
 
                 session.run(
-                    "MATCH (from:URL {title: $from_title, link: $from_link}), "
-                    "(to:URL {title: $to_title, link: $to_link}) "
+                    "MATCH (from:URL {title: $from_title}), "
+                    "(to:URL {title: $to_title}) "
                     "MERGE (from)-[:CONNECTED]->(to)",
                     from_title=from_title,
-                    from_link=from_link,
                     to_title=to_title,
-                    to_link=to_link,
                 )
 
     def clear_graph(self):

@@ -15,7 +15,7 @@ import time
 DEFAULT_PAGE = "Erdős number"
 DEFAULT_DEPTH = 3
 PREFIX_LINK = "https://en.wikipedia.org"
-MAX_NUM_NODES = 1000
+MAX_NUM_VISITED_PAGES = 1000
 EXCLUDED_PAGES = [
     "/Portal:",
     "/Wikipedia:",
@@ -117,7 +117,7 @@ def parse_html(url, depth, driver):
     if (
         depth == 0
         or url in visited_pages
-        or len(visited_pages) >= MAX_NUM_NODES
+        or len(visited_pages) >= MAX_NUM_VISITED_PAGES
     ):
         return
 
@@ -152,7 +152,7 @@ def parse_html(url, depth, driver):
                     driver,
                 )
                 for link in links
-                if len(visited_pages) < MAX_NUM_NODES
+                if len(visited_pages) < MAX_NUM_VISITED_PAGES
                 and link not in visited_pages
                 and depth - 1 != 0
             ]
@@ -179,10 +179,13 @@ def main():
         )
         parse_html(start_page, depth, driver)
 
-        with open("graph.json", "w") as file:
+        with open("../graph10.json", "w") as file:
             json.dump(json_data, file, indent=2)
 
-        os.environ["WIKI_FILE"] = "graph.json"
+        if os.getenv("WIKI_FILE") is None:
+            os.environ["WIKI_FILE"] = "graph.json"
+            with open("../.env", "a") as env_file:
+                env_file.write("WIKI_FILE=graph.json\n")
 
         driver.close()
 
