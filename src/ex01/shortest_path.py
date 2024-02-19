@@ -1,6 +1,7 @@
 import argparse
 import json
 import os
+from dotenv import load_dotenv
 
 
 def dikstra(dict_js: list, from_node: str, to_node: str, non_directed: bool):
@@ -82,7 +83,8 @@ def min_dist(dict_d: dict) -> str:
 
 
 def main():
-    # os.environ['WIKI_FILE'] = '../EX00/graph.json'
+    # os.environ['WIKI_FILE'] = '../EX00/graph.json' #добавить
+    load_dotenv(dotenv_path=os.getcwd() + '/../EX00/.env')
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--fr", "--from",  required=True)
