@@ -1,2 +1,0 @@
-networkx==2.7
-bokeh==3.3.4

@@ -3,6 +3,9 @@ import networkx as nx
 from bokeh.plotting import figure, from_networkx, show
 from bokeh.models import BoxZoomTool, Circle, HoverTool, MultiLine, ResetTool
 from bokeh.palettes import Spectral4
+import os
+from dotenv import load_dotenv
+
 
 EDGE_COLOR = "navy"
 NODE_COLOR = Spectral4[0]
@@ -40,6 +43,8 @@ def print_graph(wiki_js):
     for node in g.nodes():
         node_size = 10 + incoming_connects[titles[node]] * 3
         node_attr[node] = node_size
+        if node == len(titles)-1:
+            break
     nx.set_node_attributes(g, node_attr, "node_size")
 
     # create graph
@@ -57,8 +62,10 @@ def print_graph(wiki_js):
 
 
 def main():
-    with open('graph.json', 'r') as wiki:
+    load_dotenv(dotenv_path=os.getcwd() + '/.env')
+    with open(os.environ.get('WIKI_FILE'), 'r') as wiki:
         wiki_js = json.load(wiki)
+
     print_graph(wiki_js)
 
 

@@ -84,7 +84,7 @@ def min_dist(dict_d: dict) -> str:
 
 def main():
     # os.environ['WIKI_FILE'] = '../EX00/graph.json' #добавить
-    load_dotenv(dotenv_path=os.getcwd() + '/../.env')
+    load_dotenv(dotenv_path=os.getcwd() + '/.env')
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--fr", "--from",  required=True)
