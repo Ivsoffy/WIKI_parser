@@ -2,9 +2,10 @@ import argparse
 import json
 import os
 from dotenv import load_dotenv
+import logging
 
 
-def dikstra(dict_js: list, from_node: str, to_node: str, non_directed: bool):
+def path_finder(dict_js: list, from_node: str, to_node: str, non_directed: bool):
     dict_d = {}
     for d in dict_js:
         dict_d[d["from_node"]["title"]] = {
@@ -23,7 +24,7 @@ def dikstra(dict_js: list, from_node: str, to_node: str, non_directed: bool):
     while True:
         node = min_dist(dict_d)
         n_count += 1
-        if n_count > len(dict_d):
+        if n_count > len(dict_d) or node not in dict_d.keys():
             return -1
         dict_d[node]["visited"] = 1
         for n in dict_d[node]["to_nodes"]:
@@ -82,32 +83,55 @@ def min_dist(dict_d: dict) -> str:
     return min_dist_node
 
 
-def main():
-    # os.environ['WIKI_FILE'] = '../EX00/graph.json' #добавить
-    load_dotenv(dotenv_path=os.getcwd() + '/.env')
+def path_printer(flag_v, res):
+    if flag_v:
+        for i, n in enumerate(res["way"]):
+            if i != len(res["way"]) - 1:
+                print('\'' + n + '\'', end=' -> ')
+            else:
+                print('\'' + n + '\'')
+        print(res["distance"])
 
+
+def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--fr", "--from",  required=True)
-    parser.add_argument("--to", required=True)
-    parser.add_argument("--non-directed", action="store_true")
-    parser.add_argument("-v", action="store_true")
+    parser.add_argument(
+        "--fr", 
+        "--from", 
+        required=True, 
+        help="Start wiki page"
+        )
+    parser.add_argument(
+        "--to", 
+        required=True, 
+        help=f"End wiki page"
+        )
+    parser.add_argument(
+        "--non-directed", 
+        action="store_true", 
+        help="All links as bidirected"
+        )
+    parser.add_argument(
+        "--show_path", 
+        "-v", 
+        action="store_true", 
+        help="Show path from start to end"
+        )
     args = parser.parse_args()
 
-    with open(os.environ.get('WIKI_FILE'), 'r') as wiki_file:
-        wiki_js = json.load(wiki_file)
+    try:
+        load_dotenv('.env')
+        with open(os.environ.get('WIKI_FILE'), 'r') as wiki_file:
+            wiki_js = json.load(wiki_file)
+    except FileNotFoundError:
+        logging.error("File not found")
 
-    res = dikstra(wiki_js, args.fr, args.to, args.non_directed)
+    res = path_finder(wiki_js, args.fr, args.to, args.non_directed)
 
     if res != -1:
-        if args.v:
-            for i, n in enumerate(res["way"]):
-                if i != len(res["way"]) - 1:
-                    print('\'' + n + '\'', end=' -> ')
-                else:
-                    print('\'' + n + '\'')
-        print(res["distance"])
+        path_printer(args.show_path, res)
     else:
-        print("Database not found")
+        logging.error("Database not found")
 
 
 if __name__ == "__main__":

@@ -5,6 +5,7 @@ from bokeh.models import BoxZoomTool, Circle, HoverTool, MultiLine, ResetTool
 from bokeh.palettes import Spectral4
 import os
 from dotenv import load_dotenv
+import logging
 
 
 EDGE_COLOR = "navy"
@@ -62,9 +63,12 @@ def print_graph(wiki_js):
 
 
 def main():
-    load_dotenv(dotenv_path=os.getcwd() + '/.env')
-    with open(os.environ.get('WIKI_FILE'), 'r') as wiki:
-        wiki_js = json.load(wiki)
+    try:
+        load_dotenv('.env')
+        with open(os.environ.get('WIKI_FILE'), 'r') as wiki_file:
+            wiki_js = json.load(wiki_file)
+    except FileNotFoundError:
+        logging.error("File not found")
 
     print_graph(wiki_js)
 
