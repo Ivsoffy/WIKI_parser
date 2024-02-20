@@ -168,6 +168,25 @@ def parse_html(url, depth, driver):
                 future.result()
 
 
+def get_start_page_and_depth(args):
+    return (
+        quote("/wiki/" + args.page.replace(" ", "_"), safe="/:%"),
+        args.depth if args.depth > 0 else DEFAULT_DEPTH,
+    )
+
+
+def save_json(json_data):
+    with open("./graph.json", "w") as file:
+        json.dump(json_data, file, indent=2)
+
+
+def add_wiki_file_in_env():
+    if os.getenv("WIKI_FILE") is None:
+        os.environ["WIKI_FILE"] = "graph.json"
+        with open("./.env", "a") as env_file:
+            env_file.write("WIKI_FILE=graph.json\n")
+
+
 def main():
     global json_data, num_visited_pages
 
@@ -180,20 +199,10 @@ def main():
         driver = Neo4jDriver(uri, username, password)
         driver.clear_graph()
 
-        start_page, depth = (
-            quote("/wiki/" + args.page.replace(" ", "_"), safe="/:%"),
-            args.depth if args.depth > 0 else DEFAULT_DEPTH,
-        )
-
+        start_page, depth = get_start_page_and_depth(args)
         parse_html(start_page, depth, driver)
-
-        with open("./graph.json", "w") as file:
-            json.dump(json_data, file, indent=2)
-
-        if os.getenv("WIKI_FILE") is None:
-            os.environ["WIKI_FILE"] = "graph.json"
-            with open("./.env", "a") as env_file:
-                env_file.write("WIKI_FILE=graph.json\n")
+        save_json(json_data)
+        add_wiki_file_in_env()
 
         driver.close()
 
