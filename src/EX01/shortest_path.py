@@ -5,17 +5,21 @@ from dotenv import load_dotenv
 import logging
 
 
-def path_finder(dict_js: list, from_node: str, to_node: str, non_directed: bool):
+def path_finder(
+    dict_js: list, from_node: str, to_node: str, non_directed: bool
+):
     dict_d = {}
     for d in dict_js:
         dict_d[d["from_node"]["title"]] = {
             "to_nodes": [],
             "visited": 0,
-            "distance": 0 if d["from_node"]["title"] == from_node else float('inf'),
-            "prev": "None"
+            "distance": (
+                0 if d["from_node"]["title"] == from_node else float("inf")
+            ),
+            "prev": "None",
         }
         for n in d["to_nodes"]:
-            dict_d[d["from_node"]["title"]]['to_nodes'].append(n["title"])
+            dict_d[d["from_node"]["title"]]["to_nodes"].append(n["title"])
 
     if non_directed:
         dict_d = non_directed_expansion(dict_d, from_node, to_node)
@@ -30,8 +34,14 @@ def path_finder(dict_js: list, from_node: str, to_node: str, non_directed: bool)
         for n in dict_d[node]["to_nodes"]:
             if n == to_node:
                 way_list = way([to_node, node], dict_d, from_node, node)
-                return {"distance": dict_d[node]["distance"] + 1, "way": way_list}
-            if n in dict_d.keys() and dict_d[n]["distance"] > dict_d[node]["distance"] + 1:
+                return {
+                    "distance": dict_d[node]["distance"] + 1,
+                    "way": way_list,
+                }
+            if (
+                n in dict_d.keys()
+                and dict_d[n]["distance"] > dict_d[node]["distance"] + 1
+            ):
                 dict_d[n]["distance"] = dict_d[node]["distance"] + 1
                 dict_d[n]["prev"] = node
 
@@ -45,8 +55,8 @@ def non_directed_expansion(dict_d: dict, from_node: str, to_node: str):
                     dict_dop[j] = {
                         "to_nodes": [i],
                         "visited": 0,
-                        "distance": 0 if j == from_node else float('inf'),
-                        "prev": "None"
+                        "distance": 0 if j == from_node else float("inf"),
+                        "prev": "None",
                     }
                 else:
                     dict_dop[j]["to_nodes"].append(i)
@@ -74,7 +84,7 @@ def way(way_list: list, dict_d: dict, from_node: str, to_node: str):
 
 def min_dist(dict_d: dict) -> str:
     min_dist_node = None
-    k = float('inf')
+    k = float("inf")
     for d in dict_d.keys():
         node = dict_d[d]
         if node["visited"] == 0 and node["distance"] < k:
@@ -87,40 +97,29 @@ def path_printer(flag_v, res):
     if flag_v:
         for i, n in enumerate(res["way"]):
             if i != len(res["way"]) - 1:
-                print('\'' + n + '\'', end=' -> ')
+                print("'" + n + "'", end=" -> ")
             else:
-                print('\'' + n + '\'')
+                print("'" + n + "'")
 
 
 def main():
     parser = argparse.ArgumentParser()
+    parser.add_argument("--fr", "--from", required=True, help="Start wiki page")
+    parser.add_argument("--to", required=True, help=f"End wiki page")
     parser.add_argument(
-        "--fr", 
-        "--from", 
-        required=True, 
-        help="Start wiki page"
-        )
+        "--non-directed", action="store_true", help="All links as bidirected"
+    )
     parser.add_argument(
-        "--to", 
-        required=True, 
-        help=f"End wiki page"
-        )
-    parser.add_argument(
-        "--non-directed", 
-        action="store_true", 
-        help="All links as bidirected"
-        )
-    parser.add_argument(
-        "--show_path", 
-        "-v", 
-        action="store_true", 
-        help="Show path from start to end"
-        )
+        "--show_path",
+        "-v",
+        action="store_true",
+        help="Show path from start to end",
+    )
     args = parser.parse_args()
 
     try:
-        load_dotenv('.env')
-        with open(os.environ.get('WIKI_FILE'), 'r') as wiki_file:
+        load_dotenv(".env")
+        with open(os.environ.get("WIKI_FILE"), "r") as wiki_file:
             wiki_js = json.load(wiki_file)
     except FileNotFoundError:
         logging.error("File not found")

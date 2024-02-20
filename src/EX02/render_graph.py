@@ -44,19 +44,25 @@ def print_graph(wiki_js):
     for node in g.nodes():
         node_size = 10 + incoming_connects[titles[node]] * 3
         node_attr[node] = node_size
-        if node == len(titles)-1:
+        if node == len(titles) - 1:
             break
     nx.set_node_attributes(g, node_attr, "node_size")
 
     # create graph
-    graph = from_networkx(g, nx.kamada_kawai_layout, scale=1, center=(0, 0))  # kamada_kawai_layout or spring_layout
+    graph = from_networkx(
+        g, nx.kamada_kawai_layout, scale=1, center=(0, 0)
+    )  # kamada_kawai_layout or spring_layout
 
     # set up graph
     p = figure(title="WIKI", x_range=(-1.1, 1.1), y_range=(-1.1, 1.1))
     graph.node_renderer.glyph = Circle(size="node_size", fill_color=NODE_COLOR)
-    graph.edge_renderer.glyph = MultiLine(line_color=EDGE_COLOR, line_alpha=0.8, line_width=1)
-    graph.node_renderer.data_source.data['title'] = titles
-    node_hover_tool = HoverTool(tooltips=[("index", "@index"), ("title", "@title")])
+    graph.edge_renderer.glyph = MultiLine(
+        line_color=EDGE_COLOR, line_alpha=0.8, line_width=1
+    )
+    graph.node_renderer.data_source.data["title"] = titles
+    node_hover_tool = HoverTool(
+        tooltips=[("index", "@index"), ("title", "@title")]
+    )
     p.add_tools(node_hover_tool, BoxZoomTool(), ResetTool())
     p.renderers.append(graph)
     show(p)
@@ -64,8 +70,8 @@ def print_graph(wiki_js):
 
 def main():
     try:
-        load_dotenv('.env')
-        with open(os.environ.get('WIKI_FILE'), 'r') as wiki_file:
+        load_dotenv(".env")
+        with open(os.environ.get("WIKI_FILE"), "r") as wiki_file:
             wiki_js = json.load(wiki_file)
     except FileNotFoundError:
         logging.error("File not found")

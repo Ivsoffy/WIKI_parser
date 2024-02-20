@@ -9,8 +9,6 @@ from neo4j_class import Neo4jDriver
 from neo4j.exceptions import ConfigurationError
 import json
 from concurrent.futures import ThreadPoolExecutor
-import time
-
 
 DEFAULT_PAGE = "Erdős number"
 DEFAULT_DEPTH = 3
@@ -36,6 +34,7 @@ TAGS_TO_REMOVE = [
     {"name": "style"},
 ]
 
+num_visited_pages = 0
 visited_pages = set()
 json_data = []
 
@@ -60,6 +59,14 @@ def get_args_from_command_line():
         type=int,
         help=f"Search depth, default={DEFAULT_DEPTH}",
         dest="depth",
+    )
+    parser.add_argument(
+        "-n",
+        "--num",
+        default=MAX_NUM_VISITED_PAGES,
+        type=int,
+        help=f"Maximum number of pages visited, default={MAX_NUM_VISITED_PAGES}",
+        dest="num",
     )
     return parser.parse_args()
 
@@ -112,12 +119,12 @@ def get_links_from_body(url):
 
 
 def parse_html(url, depth, driver):
-    global visited_pages, json_data
+    global visited_pages, json_data, num_visited_pages
 
     if (
         depth == 0
         or url in visited_pages
-        or len(visited_pages) >= MAX_NUM_VISITED_PAGES
+        or len(visited_pages) >= num_visited_pages
     ):
         return
 
@@ -152,7 +159,7 @@ def parse_html(url, depth, driver):
                     driver,
                 )
                 for link in links
-                if len(visited_pages) < MAX_NUM_VISITED_PAGES
+                if len(visited_pages) < num_visited_pages
                 and link not in visited_pages
                 and depth - 1 != 0
             ]
@@ -162,11 +169,11 @@ def parse_html(url, depth, driver):
 
 
 def main():
-    global json_data
-
-    start_time = time.time()
+    global json_data, num_visited_pages
 
     args = get_args_from_command_line()
+    num_visited_pages = args.num
+
     load_dotenv()
     try:
         uri, username, password = get_auth_info_for_neo4j()
@@ -177,23 +184,21 @@ def main():
             quote("/wiki/" + args.page.replace(" ", "_"), safe="/:%"),
             args.depth if args.depth > 0 else DEFAULT_DEPTH,
         )
+
         parse_html(start_page, depth, driver)
 
-        with open("../graph10.json", "w") as file:
+        with open("./graph.json", "w") as file:
             json.dump(json_data, file, indent=2)
 
         if os.getenv("WIKI_FILE") is None:
             os.environ["WIKI_FILE"] = "graph.json"
-            with open("../.env", "a") as env_file:
+            with open("./.env", "a") as env_file:
                 env_file.write("WIKI_FILE=graph.json\n")
 
         driver.close()
 
     except ConfigurationError:
         logging.error("Incorrect auth for neo4j")
-
-    end_time = time.time()
-    print(f"time = {end_time - start_time}")
 
 
 if __name__ == "__main__":
