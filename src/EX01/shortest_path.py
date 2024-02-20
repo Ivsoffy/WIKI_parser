@@ -104,7 +104,9 @@ def path_printer(flag_v, res):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--fr", "--from", required=True, help="Start wiki page")
+    parser.add_argument(
+        "--fr", "--from", required=True, help="Start wiki page"
+    )
     parser.add_argument("--to", required=True, help=f"End wiki page")
     parser.add_argument(
         "--non-directed", action="store_true", help="All links as bidirected"

@@ -10,6 +10,7 @@ from neo4j.exceptions import ConfigurationError
 import json
 from concurrent.futures import ThreadPoolExecutor
 
+
 DEFAULT_PAGE = "Erdős number"
 DEFAULT_DEPTH = 3
 PREFIX_LINK = "https://en.wikipedia.org"
@@ -65,7 +66,8 @@ def get_args_from_command_line():
         "--num",
         default=MAX_NUM_VISITED_PAGES,
         type=int,
-        help=f"Maximum number of pages visited, default={MAX_NUM_VISITED_PAGES}",
+        help=f"""Maximum number of pages visited,
+        default={MAX_NUM_VISITED_PAGES}""",
         dest="num",
     )
     return parser.parse_args()
@@ -87,7 +89,9 @@ def is_correct_link(link):
 def remove_contents_from_body(body):
     for tag_info in TAGS_TO_REMOVE:
         tag = tag_info["name"]
-        attrs = {key: value for key, value in tag_info.items() if key != "name"}
+        attrs = {
+            key: value for key, value in tag_info.items() if key != "name"
+        }
         element = body.find(tag, attrs)
         while element:
             element.decompose()
@@ -150,7 +154,9 @@ def parse_html(url, depth, driver):
         json_data.append(node)
         driver.create_graph(node)
 
-        with ThreadPoolExecutor(max_workers=min(4, os.cpu_count())) as executor:
+        with ThreadPoolExecutor(
+            max_workers=min(4, os.cpu_count())
+        ) as executor:
             futures = [
                 executor.submit(
                     parse_html,
