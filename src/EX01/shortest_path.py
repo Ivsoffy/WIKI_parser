@@ -90,7 +90,6 @@ def path_printer(flag_v, res):
                 print('\'' + n + '\'', end=' -> ')
             else:
                 print('\'' + n + '\'')
-        print(res["distance"])
 
 
 def main():
@@ -130,6 +129,7 @@ def main():
 
     if res != -1:
         path_printer(args.show_path, res)
+        print(res["distance"])
     else:
         logging.error("Database not found")
 
