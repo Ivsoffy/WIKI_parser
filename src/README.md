@@ -1,7 +1,3 @@
-# Team 00 - Python Bootcamp
-
-## Magical connections
-
 <h2 id="docker" >Запуск докера</h2>
 
 ```bash
